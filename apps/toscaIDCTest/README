@@ -1,0 +1,24 @@
+#
+# README - TOSCA_IDC Test 
+#
+# Author: Riccardo Bruno (riccardo.bruno@ct.infn.it)
+#
+Demo application executing TOSCA IDC  
+TOSCA IDC interface test, bypasses the JSAGA adaptor contating directyl the TOSCA endpoint
+TOSCA template file tosca_template.yaml, has been taken from official templates repository from: https://raw.githubusercontent.com/indigo-dc/tosca-templates/master/amber/ambertools.yaml
+
+To execute the demo, please follow the steps below(*):
+
+1) Prepare the job submission (assuming that TOSCA IDC app has id 3)
+curl -i -H "Content-Type: application/json" -X POST -d '{"application":"3","description":"TOSCAIDC test run", "arguments": []}' http://localhost:8888/v1.0/tasks
+Inside the json returned by the command, keep note of the "id" value that will be used by the next command
+
+2) Finalize the execution instructing the API server daemon to submit (assuming that task id returned by the previous command is 6)
+curl -i -X POST http://localhost:8888/v1.0/tasks/6/input
+The "gestatus" value equal to "triggered" informs that the daemon is now in charge of submitting the job
+
+(*) CURL_AUTH variable contains authirization token. It could be empty or contain:
+
+    session token: CURL_AUTH="-H \"Authorization: $STOKEN\""  
+    PVT token    : CURL_AUTH="-H \"Authorization: Bearer $TOKEN\""
+

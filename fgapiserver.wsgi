@@ -17,14 +17,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-__author__     = "Riccardo Bruno"
-__copyright__  = "2015"
-__license__    = "Apache"
-__version__    = "1.0"
+__author__ = "Riccardo Bruno"
+__copyright__ = "2015"
+__license__ = "Apache"
+__version__ = "1.0"
 __maintainer__ = "Riccardo Bruno"
-__email__      = "riccardo.bruno@ct.infn.it"
+__email__ = "riccardo.bruno@ct.infn.it"
 
-import os,sys
-sys.stdout=sys.stderr
+import os
+import sys
+sys.stdout = sys.stderr
 sys.path.insert(0, os.path.dirname(__file__))
 from fgapiserver import app as application

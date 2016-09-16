@@ -1,0 +1,6 @@
+{
+   "parameters": {
+       "number_cpus": 1,
+       "memory_size": "1 GB"
+   }
+}

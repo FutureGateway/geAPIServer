@@ -17,43 +17,58 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-__author__     = "Riccardo Bruno"
-__copyright__  = "2015"
-__license__    = "Apache"
-__version__    = "v0.0.2-30-g37540b8-37540b8-37"
-__maintainer__ = "Riccardo Bruno"
-__email__      = "riccardo.bruno@ct.infn.it"
 
 from Crypto.Cipher import ARC4
 import time
 import base64
-key = "0123456789ABCDEF" # (!) Please use fgapiserver_secret value
-username = "test"
-password = "test"
+
+__author__ = "Riccardo Bruno"
+__copyright__ = "2015"
+__license__ = "Apache"
+__version__ = "v0.0.2-30-g37540b8-37540b8-37"
+__maintainer__ = "Riccardo Bruno"
+__email__ = "riccardo.bruno@ct.infn.it"
+
+
+key = "0123456789ABCDEF"  # (!) Please use fgapiserver_secret value
+username = "futuregateway"
+password = "futuregateway"
 
 
 # Encode
-def tokenEncode(key,username,password):
-    obj=ARC4.new(key)
-    return base64.b64encode(obj.encrypt("username=%s:password=%s:timestamp=%s" % (username,password,int(time.time()))))
+def token_encode(key, username, password):
+    obj = ARC4.new(key)
+    return base64.b64encode(
+        obj.encrypt(
+            "username=%s:password=%s:timestamp=%s" %
+            (username, password, int(
+                time.time()))))
 
 # Decode
-def tokenDecode(key,token):
-    obj=ARC4.new(key)
+
+
+def token_decode(key, token):
+    obj = ARC4.new(key)
     return obj.decrypt(base64.b64decode(token))
 
-def tokenInfo(token):
-    tinfo = tokenDecode(key,token)
+
+def token_info(token):
+    tinfo = token_decode(key, token)
     tinfo_fields = tinfo.split(':')
-    return tinfo_fields[0], tinfo_fields[1], tinfo_fields[2]
+    return \
+        tinfo_fields[0].split("=")[1], \
+        tinfo_fields[1].split("=")[1], \
+        tinfo_fields[2].split("=")[1]
 
 if __name__ == "__main__":
-    token = tokenEncode(key,username,password)
-    tinfo = tokenDecode(key,token)
-    print "Token with key: '%s'; encoding: 'username:=%s:password=%s:timestamp=<issue_time>' is '%s'" % (key,username,password,token)
-    print "Decoded token: '%s' -> '%s'" % (token,tinfo)
-    username, password, timestamp = tokenInfo(token) 
-    print "Token info: 'username=%s:password=%s:timestamp=%s'" % (username,password,timestamp)
-
-
-
+    token = token_encode(key, username, password)
+    tinfo = token_decode(key, token)
+    print ("Token with key: '%s'; "
+           "encoding: 'username:=%s:"
+           "password=%s:"
+           "timestamp=<issue_time>' is '%s'"
+           % (key, username, password, token))
+    print "Decoded token: '%s' -> '%s'" % (token, tinfo)
+    username, password, timestamp = token_info(token)
+    print ("Token info: 'username=%s:password=%s:timestamp=%s'"
+           % (username, password, timestamp))

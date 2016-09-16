@@ -16,7 +16,7 @@ PATCH="0.0.4"
 check_patch $PATCH
 
 # Create a temporary SQL file
-SQLTMP=$(mktemp)
+SQLTMP=$(mktemp /tmp/patch_${PATCH}_XXXXXX)
 
 #
 # Missing columns/tables

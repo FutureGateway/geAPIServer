@@ -23,7 +23,7 @@ ASDBCHK=$(cat $FGENV | grep asdb | wc -l)
 UTDBCHK=$(cat $FGENV | grep utdb | wc -l)
 
 if [ $ASDBCHK -eq 0 ]; then
-  TMP=$(mktemp)
+  TMP=$(mktemp /tmp/patch_${PATCH}_XXXXXX)
   out "asdb and utdb tools not existing; installing them"
   cat >$TMP <<EOF
 # DB functions
@@ -43,7 +43,7 @@ else
 fi
 
 if [ $UTDBCHK -eq 0 ]; then
-  TMP=$(mktemp)
+  TMP=$(mktemp /tmp/patch_${PATCH}_XXXXXX)
   out "utdb tool not existing; installing it"
   cat >> $TMP <<EOF
 utdb() {
@@ -62,7 +62,7 @@ else
 fi
 
 # Create a temporary SQL file
-SQLTMP=$(mktemp)
+SQLTMP=$(mktemp /tmp/patch_${PATCH}_XXXXXX)
 
 # Check for runtime_data
 RUNTIMEDATA=$(asdb_cmd "desc runtime_data;" 2>/dev/null)

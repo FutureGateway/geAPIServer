@@ -17,9 +17,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from flask_login import UserMixin
 
-from mklogtoken import token_encode, token_decode, token_info
-
+"""
+  FutureGateway APIServer User class
+"""
 __author__ = "Riccardo Bruno"
 __copyright__ = "2015"
 __license__ = "Apache"
@@ -28,11 +30,29 @@ __maintainer__ = "Riccardo Bruno"
 __email__ = "riccardo.bruno@ct.infn.it"
 
 
-def test_mklogtoken():
-    key = "0123456789abcdef"
-    username = "test"
-    password = "test"
-    token = token_encode(key, username, password)
-    tinfo = token_decode(token)
-    tusrnm, tpaswd, tkntms = token_info(tinfo)
-    assert username == tusrnm and password == tpaswd and tkntms > 0
+class User(UserMixin):
+    """
+    flask-login User Class
+    """
+
+    id = 0
+    name = ''
+
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        print "id: '%s' - name: '%s'" % (id, name)
+
+    def get_id(self):
+        """
+         Get the user identifier
+        :return: user_id
+        """
+        return self.id
+
+    def get_name(self):
+        """
+         Get the user name
+        :return:  user_name
+        """
+        return self.name

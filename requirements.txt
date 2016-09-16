@@ -1,4 +1,5 @@
-Flask
-MySQL-python
-nose
-pyOpenSSL
+flask
+flask-login
+pyMySQL
+pycrypto
+
