@@ -28,8 +28,8 @@
 --
 drop database if exists fgapiserver;
 create database fgapiserver;
-grant all on fgapiserver.* TO 'fgapiserver'@'%' IDENTIFIED BY "fgapiserver_password";
-grant all on fgapiserver.* TO 'fgapiserver'@'localhost' IDENTIFIED BY "fgapiserver_password";
+-- grant all on fgapiserver.* TO 'fgapiserver'@'%' IDENTIFIED BY "wo6YqaSCp-Ur-Nma4kPp2qJOMXhW_bUg";
+-- grant all on fgapiserver.* TO 'fgapiserver'@'localhost' IDENTIFIED BY "wo6YqaSCp-Ur-Nma4kPp2qJOMXhW_bUg";
 use fgapiserver;
 
 -- Application
@@ -152,6 +152,17 @@ insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,
 insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,6,'voms'           ,'eumed');
 insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,7,'voms_role'      ,'eumed');
 insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,8,'rfc_proxy'      ,'false');
+
+-- Parameters for infrastructure sayhello@eumed (wms)
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,1,'jobservice'     ,'wms://wms.c4.csir.co.za:7443/glite_wms_wmproxy_server');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,2,'bdii'           ,'ldap://top-bdii.africa-grid.org:2170');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,3,'eToken_host'    ,'etokenserver2.ct.infn.it');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,4,'eToken_port'    ,'8082');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,5,'eToken_id'      ,'bc779e33367eaad7882b9dfaa83a432c');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,6,'voms'           ,'sagrid');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,7,'voms_role'      ,'sagrid');
+insert into infrastructure_parameter (infra_id,param_id,pname,pvalue) values (3,8,'rfc_proxy'      ,'false');
+
 
 -- Task table
 create table task (
