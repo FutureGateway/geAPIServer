@@ -2,4 +2,4 @@ flask
 flask-login
 pyMySQL
 pycrypto
-MySQL-python
+mysql-python
