@@ -128,12 +128,11 @@ class FGAPIServerPTV:
         response.close()
         # Now fill class values
         self.portal_validate = \
-            token_info.get('token_status', 'invalid') == 'valid'\
-            or token_info.get('error', '') is None
+            len(token_info.get('subject', '')) > 0
         self.portal_user = token_info.get('portal_user', '')
         self.portal_group = token_info.get('portal_group', '')
         self.portal_groups = token_info.get('groups', [])
-        token_info.get('token_status', 'invalid')
+
         return {
             "portal_validate": self.portal_validate,
             "portal_user": self.portal_user,
