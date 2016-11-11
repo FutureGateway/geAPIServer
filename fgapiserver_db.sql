@@ -295,6 +295,7 @@ insert into fg_role (id,name,creation,modified) values (18,'group_change',now(),
 insert into fg_role (id,name,creation,modified) values (19,'role_change',now(),now());       -- Can change roles
 insert into fg_role (id,name,creation,modified) values (20,'user_impersonate',now(),now());  -- Can impersonate any other users
 insert into fg_role (id,name,creation,modified) values (21,'group_impersonate',now(),now()); -- Can impersonate other users in the same group
+insert into fg_role (id,name,creation,modified) values (22,'task_statuschange',now(),now()); -- Can change the status of a task
 --
 -- CrossTables applying Roles to Groups and Users
 --
@@ -332,6 +333,7 @@ insert into fg_group_role (group_id,role_id,creation) values (2, 5, now()); -- T
 insert into fg_group_role (group_id,role_id,creation) values (2,12, now()); -- Test can delete tasks
 insert into fg_group_role (group_id,role_id,creation) values (2,13, now()); -- Test can view tasks
 insert into fg_group_role (group_id,role_id,creation) values (2,14, now()); -- Test can manage userdata on tasks
+insert into fg_group_role (group_id,role_id,creation) values (2,22, now()); -- Test can change the status of a task
 
 -- Generic user roles
 insert into fg_group_role (group_id,role_id,creation) values (3, 4, now()); -- GenericUser can view applications
@@ -354,6 +356,7 @@ insert into fg_group_apps (group_id, app_id, creation) values (2,2,now()); -- Te
 -- Any API call needs an access token which uniquelly authorized and identifies the issuer
 create table fg_token (
     token    varchar(1024) not null -- access token
+   ,subject  varchar(1024) not null -- Subject field related to the released token
    ,user_id  int unsigned  not null -- the associated user
    ,creation datetime      not null -- when token has been created
    ,expiry   integer                -- number of seconds of validity (default 24 hours)
@@ -431,5 +434,5 @@ create table db_patches (
 );
 
 -- Default value for baseline setup (this script)
-insert into db_patches (id,version,name,file,applied) values (1,'0.0.8','baseline setup','../fgapiserver_db.sql',now());
+insert into db_patches (id,version,name,file,applied) values (1,'0.0.9','baseline setup','../fgapiserver_db.sql',now());
 

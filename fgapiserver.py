@@ -443,10 +443,15 @@ def load_user(request):
                 portal_user = result.get('portal_user', '')
                 portal_group = result.get('portal_group', '')
                 portal_groups = result.get('portal_groups', [])
+                portal_subject = result.get('portal_subject', '')
                 print ("portal_user: %s\n"
                        "portal_group: %s\n"
-                       "portal_groups: %s") %\
-                      (portal_user, portal_group, portal_groups)
+                       "portal_groups: %s\n"
+                       "portal_subject: %s") %\
+                      (portal_user,
+                       portal_group,
+                       portal_groups,
+                       portal_subject)
                 # Map the portal user with one of defined APIServer users
                 # accordingly to the rules defined in fgapiserver_ptvmap.json
                 # file. The json contains the list of possible APIServer
@@ -534,7 +539,9 @@ def load_user(request):
                         print ("login_manager PTV mapped user - "
                                "user_rec(0): '%s',user_rec(1): '%s'"
                                % (mapped_userid, mapped_username))
-                        fgapisrv_db.register_token(mapped_userid, token)
+                        fgapisrv_db.register_token(mapped_userid,
+                                                   token,
+                                                   portal_subject)
                         return User(mapped_userid, mapped_username)
                 # No portal user and group are returned or no mapping
                 # is available returning default user
@@ -559,7 +566,9 @@ def load_user(request):
                 print ("login_manager PTV mapped user - "
                        "user_id: '%s',user_name: '%s'"
                        % (default_userid, default_username))
-                fgapisrv_db.register_token(default_userid, token)
+                fgapisrv_db.register_token(default_userid,
+                                           token,
+                                           portal_subject)
                 return User(default_userid, default_username)
             else:
                 print "login_manager PTV token '%s' is not valid" % token
@@ -582,7 +591,7 @@ def load_user(request):
                 if db_state[0] != 0:
                     print "Baseline token management failed to connect DB"
                     return None
-                fgapisrv_db.register_token(user_rec[0], token)
+                fgapisrv_db.register_token(user_rec[0], token, None)
                 return User(user_rec[0], user_rec[1])
             else:
                 print "No user is associated to session token: '%s'" % token
@@ -1018,61 +1027,112 @@ def task_id(task_id=None):
         resp.headers['Content-type'] = 'application/json'
         return resp
     elif request.method == 'PATCH':
-        # PATCH on tasks accepts only changes on runtime_data
-        # The input consists in a json having the form
-        # { "runtime_data" : [ { "data_name":  "name"
-        #                       ,"data_value": "value"
-        #                       ,"data_desc": "description of the value"
-        #                       ,"data_type": "how client receives the file"
-        #                       ,"data_proto": "protocol used to access data"
-        #                      }, ... ]
-        # The insertion policy will be:
-        #  1) data_name does not exists, a new record will be created in
-        #     runtime_data table
-        #  2) data_name exists the new value will be updated to the existing
-        #
-        auth_state, auth_msg = authorize_user(
-            current_user, app_id, user, "task_userdata")
-        if not auth_state:
-            task_state = 402
-            task_response = {
-                "message": "Not authorized to perform this request:\n%s" %
-                           auth_msg}
-        else:
-            params = request.get_json()
-            runtime_data = params.get('runtime_data', [])
-            fgapisrv_db = FGAPIServerDB(
-                db_host=fgapisrv_db_host,
-                db_port=fgapisrv_db_port,
-                db_user=fgapisrv_db_user,
-                db_pass=fgapisrv_db_pass,
-                db_name=fgapisrv_db_name,
-                iosandbbox_dir=fgapisrv_iosandbox,
-                fgapiserverappid=fgapisrv_geappid)
-            db_state = fgapisrv_db.get_state()
-            if db_state[0] != 0:
-                # Couldn't contact database
-                # Prepare for 404 not found
-                task_status = 404
+        # PATCH on tasks accepts status change or on runtime_data
+        new_status = params.get('status', None)
+        if new_status is not None:
+            # status change:
+            auth_state, auth_msg = authorize_user(
+                current_user, app_id, user, "task_statuschange")
+            if not auth_state:
+                task_state = 402
                 task_response = {
-                    "message": db_state[1]
-                }
-            elif not fgapisrv_db.task_exists(task_id):
-                task_status = 404
-                task_response = {
-                    "message": "Unable to find task with id: %s" % task_id
-                }
-            elif not fgapisrv_db.patch_task(task_id, runtime_data):
-                task_status = 410
-                task_response = {
-                    "message": ("Unable store runtime data for task having "
-                                "id: %s" % task_id)
-                }
+                    "message": "Not authorized to perform status change "
+                               "request:\n%s" %
+                               auth_msg}
             else:
-                task_status = 200
+                fgapisrv_db = FGAPIServerDB(
+                    db_host=fgapisrv_db_host,
+                    db_port=fgapisrv_db_port,
+                    db_user=fgapisrv_db_user,
+                    db_pass=fgapisrv_db_pass,
+                    db_name=fgapisrv_db_name,
+                    iosandbbox_dir=fgapisrv_iosandbox,
+                    fgapiserverappid=fgapisrv_geappid)
+                db_state = fgapisrv_db.get_state()
+                if db_state[0] != 0:
+                    # Couldn't contact database
+                    # Prepare for 404 not found
+                    task_status = 404
+                    task_response = {
+                        "message": db_state[1]
+                    }
+                elif not fgapisrv_db.task_exists(task_id):
+                    task_status = 404
+                    task_response = {
+                        "message": "Unable to find task with id: %s" % task_id
+                    }
+                elif not fgapisrv_db.status_change(task_id, new_status):
+                    task_status = 410
+                    task_response = {
+                        "message": ("Unable to change status for task having "
+                                    "id: %s" % task_id)
+                    }
+                else:
+                    task_status = 200
+                    task_response = {
+                        "message": "Successfully changed status of task with"
+                                   " id: %s" % task_id
+                    }
+        else:
+            # runtime_data:
+            #
+            # The input consists in a json having the form
+            # { "runtime_data" : [
+            #   { "data_name":  "name"
+            #    ,"data_value": "value"
+            #    ,"data_desc": "description of the value"
+            #    ,"data_type": "how client receives the file"
+            #    ,"data_proto": "protocol used to access data"
+            #   }, ... ] }
+            #
+            # The insertion policy will be:
+            #  1) data_name does not exists, a new record will be created in
+            #     runtime_data table
+            #  2) data_name exists the new value will be updated to the
+            #     existing name
+            #
+            auth_state, auth_msg = authorize_user(
+                current_user, app_id, user, "task_userdata")
+            if not auth_state:
+                task_state = 402
                 task_response = {
-                    "message": "Successfully patched task with id: %s" %
-                               task_id}
+                    "message": "Not authorized to perform this request:\n%s" %
+                               auth_msg}
+            else:
+                params = request.get_json()
+                runtime_data = params.get('runtime_data', [])
+                fgapisrv_db = FGAPIServerDB(
+                    db_host=fgapisrv_db_host,
+                    db_port=fgapisrv_db_port,
+                    db_user=fgapisrv_db_user,
+                    db_pass=fgapisrv_db_pass,
+                    db_name=fgapisrv_db_name,
+                    iosandbbox_dir=fgapisrv_iosandbox,
+                    fgapiserverappid=fgapisrv_geappid)
+                db_state = fgapisrv_db.get_state()
+                if db_state[0] != 0:
+                    # Couldn't contact database
+                    # Prepare for 404 not found
+                    task_status = 404
+                    task_response = {
+                        "message": db_state[1]
+                    }
+                elif not fgapisrv_db.task_exists(task_id):
+                    task_status = 404
+                    task_response = {
+                        "message": "Unable to find task with id: %s" % task_id
+                    }
+                elif not fgapisrv_db.patch_task(task_id, runtime_data):
+                    task_status = 410
+                    task_response = {
+                        "message": ("Unable store runtime data for task "
+                                    "having id: %s" % task_id)
+                    }
+                else:
+                    task_status = 200
+                    task_response = {
+                        "message": "Successfully patched task with id: %s" %
+                                   task_id}
         js = json.dumps(task_response, indent=fgjson_indent)
         resp = Response(js, status=task_status, mimetype='application/json')
         resp.headers['Content-type'] = 'application/json'
