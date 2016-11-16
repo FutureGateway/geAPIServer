@@ -530,7 +530,7 @@ class FGAPIServerDB:
                         % urllib.urlencode({"path": ifile[2],
                                             "name": ifile[0]}),
                     }
-            task_ifiles += [ifile_entry, ]
+                task_ifiles += [ifile_entry, ]
             # Task output files
             sql = ('select file\n'
                    '      ,if(path is NULL,\'\',path)\n'
