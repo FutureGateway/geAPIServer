@@ -74,7 +74,6 @@ fgjson_indent = int(fg_config.get_config_value('fgjson_indent'))
 fgapisrv_key = fg_config.get_config_value('fgapisrv_key')
 fgapisrv_crt = fg_config.get_config_value('fgapisrv_crt')
 fgapisrv_logcfg = fg_config.get_config_value('fgapisrv_logcfg')
-fgapisrv_dbver = fg_config.get_config_value('fgapisrv_dbver')
 fgapisrv_secret = fg_config.get_config_value('fgapisrv_secret')
 fgapisrv_notoken = (fg_config.get_config_value(
     'fgapisrv_notoken').lower() == 'true')
@@ -87,6 +86,7 @@ fgapisrv_ptvdefusr = fg_config.get_config_value('fgapisrv_ptvdefusr')
 fgapisrv_ptvmapfile = fg_config.get_config_value('fgapisrv_ptvmapfile')
 
 # fgapiserver database settings
+fgapisrv_dbver = '0.0.9'
 fgapisrv_db_host = fg_config.get_config_value('fgapisrv_db_host')
 fgapisrv_db_port = int(fg_config.get_config_value('fgapisrv_db_port'))
 fgapisrv_db_user = fg_config.get_config_value('fgapisrv_db_user')
