@@ -9,22 +9,22 @@
 DEFAULTDBVER="0.0.1" # Baseline setup version
 
 ts() {
-	  date +%Y%m%d%H%M%S
+  date +%Y%m%d%H%M%S
 }
 
 out() {
-	  TS=$(ts)
-		    echo "$TS $*"
+  TS=$(ts)
+  echo "$TS $*"
 }
 
 err() {
-	  TS=$(ts)
-		    echo "$TS $*" >&2
+  TS=$(ts)
+  echo "$TS $*" >&2
 }
 
 local_exec() {
-  OUT=$(mktemp)
-  ERR=$(mktemp)
+  OUT=$(mktemp /tmp/patch_out_XXXXXX)
+  ERR=$(mktemp /tmp/patch_err_XXXXXX)
   $* >$OUT 2>$ERR
   while read ln; do
     out "$ln"

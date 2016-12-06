@@ -36,7 +36,7 @@ register_patch() {
   PATCHFILE=$2
   PATCHDESC=$3
 
-  SQL=$(mktemp)
+  SQL=$(mktemp /tmp/patch_regpatch_XXXXXX)
   cat >$SQL <<EOF
 insert into db_patches (id,version,name,file,applied) select if(max(id) is NULL,1,max(id)+1),'${PATCHVER}','${PATCHDESC}','${PATCHFILE}',now() from db_patches;
 EOF
