@@ -39,7 +39,7 @@ queries = [
     {'query': 'SELECT VERSION()',
      'result': [['test', ], ]},
     {'query': 'select max(version) from db_patches;',
-     'result': [['0.0.6'], ]},
+     'result': [['0.0.8'], ]},
     {'query': ('select  id\n'
                ',status\n'
                ',date_format(creation, \'%%Y-%%m-%%dT%%TZ\') creation\n'
@@ -68,10 +68,12 @@ queries = [
                '      ,if(path is null or length(path)=0,'
                '          \'NEEDED\','
                '          \'READY\') status\n'
+               '      ,if(path is NULL,\'\',path)\n'
                'from task_input_file\n'
                'where task_id=%s\n'
                'order by file_id asc;'),
-     'result': [['input_file_1', 'NEEDED'], ['input_file_2', 'READY'], ]},
+     'result': [['input_file_1', 'NEEDED', ''],
+                ['input_file_2', 'READY', '/tmp/test'], ]},
     {'query': ('select file\n'
                '      ,if(path is NULL,\'\',path)\n'
                'from task_output_file\n'

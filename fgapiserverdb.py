@@ -266,7 +266,7 @@ class FGAPIServerDB:
                        table. This is used by PTV which bypass APIServer
                        session tokens. The record will be written only once
     """
-    def register_token(self, userid, token):
+    def register_token(self, userid, token, subject):
         db = None
         cursor = None
         sestoken = ''
@@ -275,13 +275,13 @@ class FGAPIServerDB:
             cursor = db.cursor()
             if token is not None:
                 sql = ('insert into \n'
-                       'fg_token (token, user_id, creation, expiry)\n'
-                       'select %s, %s, now(), NULL\n'
+                       'fg_token (token, subject, user_id, creation, expiry)\n'
+                       'select %s, %s, %s, now(), NULL\n'
                        'from dual\n'
                        'where (select count(*)\n'
                        '       from fg_token\n'
                        '       where token=%s) = 0;')
-                sql_data = (token, userid, token)
+                sql_data = (token, subject, userid, token)
                 cursor.execute(sql, sql_data)
         except MySQLdb.Error as e:
             self.catch_db_error(e, db, True)
@@ -471,7 +471,9 @@ class FGAPIServerDB:
                 ',status\n'
                 ',user\n'
                 ',iosandbox\n'
-                'from task where id=%s;')
+                'from task\n'
+                'where id=%s\n'
+                '  and status != "PURGED";')
             sql_data = (task_id,)
             cursor.execute(sql, sql_data)
             task_dbrec = cursor.fetchone()
@@ -507,6 +509,7 @@ class FGAPIServerDB:
                 '      ,if(path is null or length(path)=0,'
                 '          \'NEEDED\','
                 '          \'READY\') status\n'
+                '      ,if(path is NULL,\'\',path)\n'
                 'from task_input_file\n'
                 'where task_id=%s\n'
                 'order by file_id asc;')
@@ -514,9 +517,19 @@ class FGAPIServerDB:
             cursor.execute(sql, sql_data)
             task_ifiles = []
             for ifile in cursor:
-                ifile_entry = {
-                    "name": ifile[0], "status": ifile[1]
-                }
+                if ifile[1] == 'NEEDED':
+                    ifile_entry = {
+                        "name": ifile[0],
+                        "status": ifile[1],
+                    }
+                else:
+                    ifile_entry = {
+                        "name": ifile[0],
+                        "status": ifile[1],
+                        "url": 'file?%s'
+                        % urllib.urlencode({"path": ifile[2],
+                                            "name": ifile[0]}),
+                    }
                 task_ifiles += [ifile_entry, ]
             # Task output files
             sql = ('select file\n'
@@ -1198,7 +1211,7 @@ class FGAPIServerDB:
                 sql_data += (app_id,)
             sql = ('select id\n'
                    'from task\n'
-                   'where true\n'
+                   'where status != "PURGED"\n'
                    '%s%s;'
                    ) % (user_clause, app_clause)
             cursor.execute(sql, sql_data)
@@ -1369,7 +1382,7 @@ class FGAPIServerDB:
         return 1 == int(no_override)
 
     """
-      get_file_task_id - Get the task id related to the fiven file and path
+      get_file_task_id - Get the task id related to the given file and path
     """
 
     def get_file_task_id(self, file_name, file_path):
@@ -1379,9 +1392,12 @@ class FGAPIServerDB:
         try:
             db = self.connect()
             cursor = db.cursor()
-            sql = ('select task_id from task_output_file '
+            sql = ('select task_id from task_output_file\n'
+                   'where file=%s and path=%s\n'
+                   'union all\n'
+                   'select task_id from task_input_file\n'
                    'where file=%s and path=%s;')
-            sql_data = (file_name, file_path)
+            sql_data = (file_name, file_path, file_name, file_path)
             cursor.execute(sql, sql_data)
             task_id = cursor.fetchone()[0]
         except MySQLdb.Error as e:
@@ -1389,6 +1405,44 @@ class FGAPIServerDB:
         finally:
             self.close_db(db, cursor, False)
         return task_id
+
+    """
+      status_change - Add a task status change command in as_queue
+                      this causes the EIs to handle the change properly
+    """
+
+    def status_change(self, task_id, new_status):
+        db = None
+        cursor = None
+        try:
+            db = self.connect()
+            cursor = db.cursor()
+            sql = ('insert into as_queue (task_id,'
+                   '                      action,'
+                   '                      status,'
+                   '                      target,'
+                   '                      target_status,'
+                   '                      creation,'
+                   '                      last_change,'
+                   '                      check_ts)'
+                   'values (%s,'
+                   '        "STATUSCH",'
+                   '        "QUEUED",'
+                   '        (select target '
+                   '         from as_queue '
+                   '         where task_id=%s '
+                   '         and action="SUBMIT"),'
+                   '         %s,'
+                   '         now(),'
+                   '         now(),'
+                   '         now());')
+            sql_data = (task_id, task_id, new_status)
+            cursor.execute(sql, sql_data)
+        except MySQLdb.Error as e:
+            self.catch_db_error(e, db, True)
+        finally:
+            self.close_db(db, cursor, True)
+        return
 #
 # Application
 #

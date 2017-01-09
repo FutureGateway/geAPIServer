@@ -5,7 +5,7 @@
 APPNAME="hostname@toscaIDC"
 APPDESC="hostname tester application on toscaIDC"
 OUTCOME="JOB"
-TOSCA_ENDPOINT="http://90.147.170.152:8080/orchestrator/deployments"
+TOSCA_ENDPOINT="http://localhost:8889/orchestrator/deployments"
 TOSCA_IP=$(echo $TOSCA_ENDPOINT | sed s/[a-z][A-Z]*//g | tr '/' ' ' | sed s/': '// | xargs echo)
 INFRADESC="Tosca test at $TOSCA_ENDPOINT"
 INFRANAME="tosca_Test@$TOSCA_IP"

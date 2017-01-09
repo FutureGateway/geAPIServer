@@ -63,8 +63,6 @@ class FGApiServerConfig:
             'fgapiserver', 'fgapisrv_crt')
         self.fgConfig['fgapisrv_logcfg'] = config.get(
             'fgapiserver', 'fgapisrv_logcfg')
-        self.fgConfig['fgapisrv_dbver'] = config.get(
-            'fgapiserver', 'fgapisrv_dbver')
         self.fgConfig['fgapisrv_secret'] = config.get(
             'fgapiserver', 'fgapisrv_secret')
         self.fgConfig['fgapisrv_notoken'] = config.get(
@@ -153,8 +151,6 @@ class FGApiServerConfig:
             def_value = ''
         elif key == 'fgapisrv_logcfg':
             def_value = 'fgapiserver_log.conf'
-        elif key == 'fgapisrv_dbver':
-            def_value = ''
         elif key == 'fgapisrv_secret':
             def_value = ''.join(random.choice(string.uppercase)
                                 for x in range(16))

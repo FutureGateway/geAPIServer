@@ -122,8 +122,58 @@ def requires_auth(f):
     return decorated
 
 ##
-# Self PTV handler
+# PTV handlers
 ##
+
+
+#
+# /get-token; PTV endpoint to retrieve a new valid token
+# Portals normally return a json in the format:
+#    {
+#        "error": null,
+#        "groups": null,
+#        "subject": "<the-subject>",
+#        "token": "<the-new-token>"
+#    }
+# This PTV handler totally ignores basic authentication credentials
+# (username/password) contained in the request form but needs the
+# subject field initially returned by the checktoken/ call
+#
+@app.route('/get-token', methods=['GET', 'POST'])
+@app.route('/%s/get-token' % fgapiver, methods=['GET', 'POST'])
+@requires_auth
+def get_token():
+    response = {}
+    subject = request.values.get('subject')
+    if request.method == 'GET':
+        message = "Unhandled method: '%s'" % request.method
+        response["error"] = message
+        ctk_status = 400
+    elif request.method == 'POST':
+        response = {
+            "error": None,
+            "groups": None,
+            "subject": subject,
+            "token": "eyJraWQiOiJyc2ExIiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiIzYTJkN"
+                     "BmNS0zYmRjLTQwMjAtODJjYi0xMDI4OTQzYzc3N2QiLCJpc3MiOiJodH"
+                     "wczpcL1wvaWFtLXRlc3QuaW5kaWdvLWRhdGFjbG91ZC5ldVwvIiwiZXh"
+                     "IjoxNDc2MjY3NjA2LCJpYXQiOjE0NzYyNjQwMDYsImp0aSI6IjRjN2Y5"
+                     "TczLWJmYzItNDEzYy1hNzhjLWUxZmJlMGU2NjAwYSJ9.BfDlr6Far_oe"
+                     "7z-SuLPbXgfKx3VuHJ0iuL-Dyd6G5_7_rNPrvZr5Da_HJUfonOLr8uOo"
+                     "UhMUIP_Xiw4ZuWVIIhNPDSdu4lhWy5kkcoQ3rI9myNT2WxLA3IP2ZEwP"
+                     "InefF0LzAlMj4-iQQw-kAavKgvA00sO8cww9Hzx6Thfw"
+        }
+        ctk_status = 200
+    else:
+        message = "Unhandled method: '%s'" % request.method
+        response["error"] = message
+        ctk_status = 400
+    # include _links part
+    response["_links"] = [{"rel": "self", "href": "/get-token"}, ]
+    js = json.dumps(response, indent=fgjson_indent)
+    resp = Response(js, status=ctk_status, mimetype='application/json')
+    resp.headers['Content-type'] = 'application/json'
+    return resp
 
 
 #
@@ -134,7 +184,7 @@ def requires_auth(f):
 #     "portal_group": "<portal user group name>" ] }
 # Optional fields portal_user and portal_groups are used to map the portal
 # user/group with a FutureGateway user/group
-# This self PTV handler totally ignores basic authentication credentials
+# This PTV handler totally ignores basic authentication credentials
 # (username/password) contained in the request form
 #
 @app.route('/get-token-info', methods=['GET', 'POST'])
@@ -179,6 +229,7 @@ def checktoken():
     resp = Response(js, status=ctk_status, mimetype='application/json')
     resp.headers['Content-type'] = 'application/json'
     return resp
+
 
 ##
 # Orchestrator test handler
