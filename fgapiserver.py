@@ -955,12 +955,12 @@ def task_id(task_id=None):
             if db_state[0] != 0:
                 # Couldn't contact database
                 # Prepare for 404 not found
-                task_status = 404
+                task_state = 404
                 task_response = {
                     "message": db_state[1]
                 }
             elif not fgapisrv_db.task_exists(task_id):
-                task_status = 404
+                task_state = 404
                 task_response = {
                     "message": "Unable to find task with id: %s" % task_id
                 }
@@ -971,15 +971,15 @@ def task_id(task_id=None):
                 if db_state[0] != 0:
                     # Couldn't get TaskRecord
                     # Prepare for 404 not found
-                    task_status = 404
+                    task_state = 404
                     task_response = {
                         "message": db_state[1]
                     }
                 else:
-                    task_status = 200
+                    task_state = 200
         # Display task details
         js = json.dumps(task_response, indent=fgjson_indent)
-        resp = Response(js, status=task_status, mimetype='application/json')
+        resp = Response(js, status=task_state, mimetype='application/json')
         resp.headers['Content-type'] = 'application/json'
         return resp
     elif request.method == 'DELETE':
